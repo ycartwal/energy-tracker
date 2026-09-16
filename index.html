@@ -3,61 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f5f7fb">
 <title>Energy Cost Tracker</title>
-
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#f4f6fa;color:#172033;
- font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
-}
-main{max-width:960px;margin:auto;padding:18px}
-.top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px}
-h1{font-size:25px;margin:0}
+body{margin:0;background:#f4f6fa;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:850px;margin:auto;padding:15px}
+h1{font-size:24px;margin:5px 0}
 .sub,.small{color:#687386;font-size:13px}
-.card{
- background:#fff;border:1px solid #e3e8f0;
- border-radius:16px;padding:16px;margin:12px 0;
- box-shadow:0 5px 20px #1b29430a
-}
-.grid2,.grid4{display:grid;gap:12px}
-.grid2{grid-template-columns:repeat(2,1fr)}
+.card{background:#fff;border:1px solid #e3e8f0;border-radius:16px;padding:15px;margin:11px 0}
+.grid2,.grid4{display:grid;gap:10px}
+.grid2{grid-template-columns:1fr 1fr}
 .grid4{grid-template-columns:repeat(4,1fr)}
-label{font-size:12px;color:#687386;display:block;margin:8px 0 5px}
-input{
- width:100%;padding:11px;border:1px solid #d7deea;
- border-radius:10px;font-size:16px;background:white
-}
-button{
- border:0;border-radius:10px;padding:11px 14px;
- font-weight:650;cursor:pointer
-}
-.primary{background:#172033;color:#fff;width:100%;margin-top:12px}
-.ghost{background:#edf1f6;color:#172033}
-.metric{background:#f7f9fc;border-radius:12px;padding:12px}
-.metric b{font-size:22px;display:block;margin-top:4px}
-.good{color:#087a55}
-.bad{color:#b54232}
-.tariff{
- background:#f7f9fc;border-radius:12px;
- padding:14px;margin-top:14px;line-height:1.7
-}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{text-align:right;padding:10px 7px;border-bottom:1px solid #edf0f5}
-th:first-child,td:first-child{text-align:left}
+.metric{background:#f7f9fc;border-radius:11px;padding:11px}
+.metric b{display:block;font-size:22px;margin:3px 0}
+.good{color:#07845c}.bad{color:#c44738}
+.fusebar{background:#eef2f7;border-radius:11px;padding:11px;margin-top:10px;font-size:13px;line-height:1.7}
+label{display:block;font-size:12px;color:#687386;margin:8px 0 5px}
+input{width:100%;padding:11px;border:1px solid #d6deea;border-radius:10px;font-size:16px}
+button{border:0;border-radius:10px;padding:11px;font-weight:650}
+.primary{width:100%;background:#172033;color:white;margin-top:12px}
+.ghost{background:#edf1f6}
+.result{background:#f7f9fc;border-radius:12px;padding:14px;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+td,th{padding:9px 5px;border-bottom:1px solid #eee;text-align:right}
+td:first-child,th:first-child{text-align:left}
 .scroll{overflow:auto}
-.pill{
- background:#edf1f6;padding:6px 9px;
- border-radius:999px;font-size:12px;white-space:nowrap
-}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.actions button{flex:1;min-width:120px}
-
-@media(max-width:700px){
- .grid4{grid-template-columns:repeat(2,1fr)}
- .grid2{grid-template-columns:1fr}
- .top{align-items:flex-start;flex-direction:column}
+.actions{display:flex;gap:7px;margin-top:10px}
+.actions button{flex:1}
+@media(max-width:650px){
+.grid4{grid-template-columns:1fr 1fr}
+.grid2{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -65,123 +40,86 @@ th:first-child,td:first-child{text-align:left}
 <body>
 <main>
 
-<div class="top">
- <div>
-  <h1>⚡ Energy Cost Tracker</h1>
-  <div class="sub">Fuse Fixed vs Octopus Tracker · East Midlands (B)</div>
- </div>
- <span class="pill">Tracker Sep 2025 v1</span>
-</div>
-
+<h1>⚡ Energy Cost Tracker</h1>
+<div class="sub">Fuse Fixed vs Octopus Tracker · East Midlands (B)</div>
 
 <section class="card">
+<b>今日價格</b>
 
-<b>今日 Tracker 價格</b>
+<div class="grid2" style="margin-top:10px">
 
-<div class="grid4" style="margin-top:12px">
+<div class="metric">
+<span class="small">⚡ Tracker Electricity</span>
+<b id="te">—</b>
+<span class="small" id="ediff"></span>
+</div>
 
- <div class="metric">
-  <span class="small">⚡ Electricity</span>
-  <b id="todayE">—</b>
-  <span class="small">p/kWh</span>
- </div>
-
- <div class="metric">
-  <span class="small">🔥 Gas</span>
-  <b id="todayG">—</b>
-  <span class="small">p/kWh</span>
- </div>
-
- <div class="metric">
-  <span class="small">Electricity Standing</span>
-  <b>45.83p</b>
-  <span class="small">/day</span>
- </div>
-
- <div class="metric">
-  <span class="small">Gas Standing</span>
-  <b>31.23p</b>
-  <span class="small">/day</span>
- </div>
+<div class="metric">
+<span class="small">🔥 Tracker Gas</span>
+<b id="tg">—</b>
+<span class="small" id="gdiff"></span>
+</div>
 
 </div>
 
-<div id="apiStatus" class="small" style="margin-top:10px">
-正在讀取 Octopus 價格…
+<div class="fusebar">
+<b>Fuse Fixed</b><br>
+⚡ 23.24p/kWh + 41.44p/day &nbsp;｜&nbsp;
+🔥 7.55p/kWh + 10.83p/day
 </div>
 
+<div id="status" class="small" style="margin-top:8px">
+讀取 Tracker 價格中…
+</div>
 </section>
 
 
 <section class="card">
 
-<b>Fuse Fixed Tariff</b>
-
-<div class="grid4" style="margin-top:12px">
-
- <div class="metric">
-  <span class="small">⚡ Electricity</span>
-  <b>23.24p</b>
-  <span class="small">/kWh</span>
- </div>
-
- <div class="metric">
-  <span class="small">⚡ Electricity Standing</span>
-  <b>41.44p</b>
-  <span class="small">/day</span>
- </div>
-
- <div class="metric">
-  <span class="small">🔥 Gas</span>
-  <b>7.55p</b>
-  <span class="small">/kWh</span>
- </div>
-
- <div class="metric">
-  <span class="small">🔥 Gas Standing</span>
-  <b>10.83p</b>
-  <span class="small">/day</span>
- </div>
-
-</div>
-
-<div class="small" style="margin-top:10px">
-Fixed rate — 每日計算會自動使用以上價格，唔需要重新輸入。
-</div>
-
-</section>
-
-
-<section class="card">
-
-<b>加入每日用量</b>
+<b>每日用量</b>
 
 <div class="grid2">
 
- <div>
-  <label>日期</label>
-  <input id="date" type="date">
- </div>
+<div>
+<label>日期</label>
+<input id="date" type="date">
+</div>
 
- <div>
-  <label>Electricity 使用量 (kWh)</label>
-  <input id="ekwh" type="number" step=".001" inputmode="decimal" placeholder="例如 8.5">
- </div>
+<div>
+<label>Electricity (kWh)</label>
+<input id="ekwh" type="number" step=".001" inputmode="decimal">
+</div>
 
- <div>
-  <label>Gas 使用量 (kWh)</label>
-  <input id="gkwh" type="number" step=".001" inputmode="decimal" placeholder="例如 20.3">
- </div>
+<div>
+<label>Gas (kWh)</label>
+<input id="gkwh" type="number" step=".001" inputmode="decimal">
+</div>
 
 </div>
 
-<button class="primary" id="save">
-儲存 / 更新呢日紀錄
-</button>
+<div class="result">
 
-<div class="small" id="saveStatus" style="margin-top:8px">
-只需輸入用量。Fuse 固定價格及 Tracker 當日價格會自動計算。
+<div class="grid2">
+
+<div>
+<span class="small">Fuse 今日成本</span>
+<b id="previewFuse">£—</b>
 </div>
+
+<div>
+<span class="small">Tracker 今日成本</span>
+<b id="previewTracker">£—</b>
+</div>
+
+</div>
+
+<div id="previewDiff" style="margin-top:8px;font-weight:700"></div>
+
+</div>
+
+<button id="save" class="primary">儲存今日紀錄</button>
+
+<div id="saveStatus" class="small" style="margin-top:8px"></div>
 
 </section>
 
@@ -190,28 +128,28 @@ Fixed rate — 每日計算會自動使用以上價格，唔需要重新輸入�
 
 <b>累計比較</b>
 
-<div class="grid4" style="margin-top:12px">
+<div class="grid4" style="margin-top:10px">
 
- <div class="metric">
-  <span class="small">Fuse 總成本</span>
-  <b id="sumFuse">£0.00</b>
- </div>
+<div class="metric">
+<span class="small">Fuse</span>
+<b id="sumFuse">£0.00</b>
+</div>
 
- <div class="metric">
-  <span class="small">Tracker 總成本</span>
-  <b id="sumTracker">£0.00</b>
- </div>
+<div class="metric">
+<span class="small">Tracker</span>
+<b id="sumTracker">£0.00</b>
+</div>
 
- <div class="metric">
-  <span class="small">差額</span>
-  <b id="saving">£0.00</b>
-  <span class="small" id="savingText"></span>
- </div>
+<div class="metric">
+<span class="small">差額</span>
+<b id="saving">£0.00</b>
+<span id="savingText" class="small"></span>
+</div>
 
- <div class="metric">
-  <span class="small">紀錄日數</span>
-  <b id="days">0</b>
- </div>
+<div class="metric">
+<span class="small">日數</span>
+<b id="days">0</b>
+</div>
 
 </div>
 
@@ -220,106 +158,81 @@ Fixed rate — 每日計算會自動使用以上價格，唔需要重新輸入�
 
 <section class="card">
 
-<div class="top">
-
- <b>歷史紀錄</b>
-
- <div class="actions">
-  <button class="ghost" id="export">Export CSV</button>
-  <button class="ghost" id="backup">Backup JSON</button>
-  <button class="ghost" id="clear">清除全部</button>
- </div>
-
-</div>
+<b>歷史紀錄</b>
 
 <div class="scroll">
-
 <table>
-
 <thead>
 <tr>
- <th>日期</th>
- <th>電 kWh</th>
- <th>Gas kWh</th>
- <th>Fuse</th>
- <th>Tracker</th>
- <th>差額</th>
- <th></th>
+<th>日期</th>
+<th>電</th>
+<th>Gas</th>
+<th>Fuse</th>
+<th>Tracker</th>
+<th>差額</th>
+<th></th>
 </tr>
 </thead>
-
 <tbody id="rows"></tbody>
-
 </table>
+</div>
 
+<div class="actions">
+<button class="ghost" id="csv">CSV</button>
+<button class="ghost" id="backup">Backup</button>
+<button class="ghost" id="clear">清除</button>
 </div>
 
 </section>
 
 </main>
 
-
 <script>
 
 const PRODUCT='SILVER-25-09-02';
 const REGION='B';
 
-/* Octopus Tracker */
 const TRACKER_E_SC=45.83;
 const TRACKER_G_SC=31.23;
 
-/* Fuse Fixed Tariff */
-const FUSE_E_RATE=23.24;
+const FUSE_E=23.24;
 const FUSE_E_SC=41.44;
 
-const FUSE_G_RATE=7.55;
+const FUSE_G=7.55;
 const FUSE_G_SC=10.83;
-
-const KEY='ycartwal-energy-v3';
 
 const ET=`E-1R-${PRODUCT}-${REGION}`;
 const GT=`G-1R-${PRODUCT}-${REGION}`;
 
-const $=x=>document.getElementById(x);
+const KEY='ycartwal-energy-v4';
 
+const $=id=>document.getElementById(id);
 
-function localDate(){
-
+function today(){
  let d=new Date();
-
- return [
-  d.getFullYear(),
-  String(d.getMonth()+1).padStart(2,'0'),
-  String(d.getDate()).padStart(2,'0')
- ].join('-');
-
+ return d.getFullYear()+'-'+
+ String(d.getMonth()+1).padStart(2,'0')+'-'+
+ String(d.getDate()).padStart(2,'0');
 }
 
-
-$('date').value=localDate();
-
+$('date').value=today();
 
 let data=[];
 
 try{
+ data=JSON.parse(localStorage.getItem(KEY)||'[]');
+}catch(e){data=[];}
 
- data=JSON.parse(
-  localStorage.getItem(KEY)||'[]'
- );
-
-}catch(e){
-
- data=[];
-
-}
+let currentE=null;
+let currentG=null;
 
 
-async function getRate(fuel,tariff,date){
+async function rate(fuel,tariff,date){
 
  const from=date+'T00:00:00Z';
 
  const to=new Date(
-  new Date(date+'T00:00:00Z').getTime()+86400000
+  new Date(from).getTime()+86400000
  ).toISOString();
 
  const url=
@@ -327,376 +240,261 @@ async function getRate(fuel,tariff,date){
 
  const r=await fetch(url);
 
- if(!r.ok)
-  throw Error('API '+r.status);
+ if(!r.ok) throw Error('API '+r.status);
 
  const j=await r.json();
 
- if(!j.results || !j.results.length)
-  throw Error('未有該日價格');
+ if(!j.results?.length)
+  throw Error('未有價格');
 
- let hit=
-  j.results.find(
-   x=>x.valid_from &&
-   x.valid_from.slice(0,10)===date
-  ) || j.results[0];
-
- return Number(hit.value_inc_vat);
-
+ return Number(j.results[0].value_inc_vat);
 }
 
 
-async function rates(date){
+async function getRates(date){
 
  return Promise.all([
-
-  getRate(
-   'electricity',
-   ET,
-   date
-  ),
-
-  getRate(
-   'gas',
-   GT,
-   date
-  )
-
+  rate('electricity',ET,date),
+  rate('gas',GT,date)
  ]);
 
 }
 
 
-async function today(){
+async function loadDate(){
 
  try{
 
-  let [e,g]=await rates(localDate());
+  $('status').textContent='讀取價格中…';
 
-  $('todayE').textContent=
-  e.toFixed(2);
+  [currentE,currentG]=await getRates($('date').value);
 
-  $('todayG').textContent=
-  g.toFixed(2);
+  if($('date').value===today()){
+   $('te').textContent=currentE.toFixed(2)+'p';
+   $('tg').textContent=currentG.toFixed(2)+'p';
 
-  $('apiStatus').textContent=
-  'Octopus public API · '+
-  localDate()+
-  ' · Tracker Sep 2025 v1 · East Midlands';
+   let ed=currentE-FUSE_E;
+   let gd=currentG-FUSE_G;
 
- }
+   $('ediff').textContent=
+   'vs Fuse '+(ed>=0?'+':'')+ed.toFixed(2)+'p/kWh';
 
- catch(e){
+   $('gdiff').textContent=
+   'vs Fuse '+(gd>=0?'+':'')+gd.toFixed(2)+'p/kWh';
 
-  $('apiStatus').textContent=
-  '暫時讀取唔到價格：'+
-  e.message;
+   $('ediff').className=ed>0?'small bad':'small good';
+   $('gdiff').className=gd>0?'small bad':'small good';
+  }
+
+  $('status').textContent=
+  $('date').value+' · Tracker Sep 2025 v1';
+
+  preview();
+
+ }catch(e){
+
+  currentE=null;
+  currentG=null;
+
+  $('status').textContent=
+  '讀取唔到價格：'+e.message;
 
  }
 
 }
 
 
-function money(x){
+function calc(ek,gk,e,g){
 
- return '£'+Number(x).toFixed(2);
+ const fuse=
+ (ek*FUSE_E+FUSE_E_SC+
+  gk*FUSE_G+FUSE_G_SC)/100;
 
+ const tracker=
+ (ek*e+TRACKER_E_SC+
+  gk*g+TRACKER_G_SC)/100;
+
+ return {fuse,tracker};
+
+}
+
+
+function preview(){
+
+ if(currentE===null||currentG===null)return;
+
+ const ek=Number($('ekwh').value)||0;
+ const gk=Number($('gkwh').value)||0;
+
+ const c=calc(ek,gk,currentE,currentG);
+
+ $('previewFuse').textContent=
+ '£'+c.fuse.toFixed(2);
+
+ $('previewTracker').textContent=
+ '£'+c.tracker.toFixed(2);
+
+ const diff=c.fuse-c.tracker;
+
+ if(diff>0){
+
+  $('previewDiff').textContent=
+  'Tracker 平 £'+diff.toFixed(2);
+
+  $('previewDiff').className='good';
+
+ }else if(diff<0){
+
+  $('previewDiff').textContent=
+  'Fuse 平 £'+Math.abs(diff).toFixed(2);
+
+  $('previewDiff').className='bad';
+
+ }else{
+
+  $('previewDiff').textContent='相同';
+
+ }
+
+}
+
+
+$('ekwh').oninput=preview;
+$('gkwh').oninput=preview;
+
+$('date').onchange=loadDate;
+
+
+$('save').onclick=async()=>{
+
+ try{
+
+  const date=$('date').value;
+  const ek=Number($('ekwh').value);
+  const gk=Number($('gkwh').value);
+
+  if(!Number.isFinite(ek)||!Number.isFinite(gk)){
+   $('saveStatus').textContent='請輸入電及 Gas 用量';
+   return;
+  }
+
+  $('saveStatus').textContent='儲存中…';
+
+  const [e,g]=await getRates(date);
+
+  const c=calc(ek,gk,e,g);
+
+  const rec={
+   date,
+   ekwh:ek,
+   gkwh:gk,
+   trackerE:e,
+   trackerG:g,
+   fuse:c.fuse,
+   tracker:c.tracker
+  };
+
+  data=data.filter(x=>x.date!==date);
+
+  data.push(rec);
+
+  render();
+
+  $('saveStatus').textContent=
+  '✓ 已儲存';
+
+ }catch(e){
+
+  $('saveStatus').textContent=
+  '儲存失敗：'+e.message;
+
+ }
+
+};
+
+
+function money(n){
+ return '£'+Number(n).toFixed(2);
 }
 
 
 function render(){
 
- data.sort(
-  (a,b)=>b.date.localeCompare(a.date)
- );
+ data.sort((a,b)=>b.date.localeCompare(a.date));
 
- let sf=0;
- let st=0;
+ let fuse=0;
+ let tracker=0;
 
+ $('rows').innerHTML=data.map(x=>{
 
- $('rows').innerHTML=
- data.map(x=>{
+  fuse+=x.fuse;
+  tracker+=x.tracker;
 
-  sf+=Number(x.fuse);
-  st+=Number(x.tracker);
-
-  let difference=
-  Number(x.fuse)-Number(x.tracker);
+  const d=x.fuse-x.tracker;
 
   return `
-
   <tr>
-
-   <td>${x.date}</td>
-
-   <td>${x.ekwh}</td>
-
-   <td>${x.gkwh}</td>
-
-   <td>${money(x.fuse)}</td>
-
-   <td>${money(x.tracker)}</td>
-
-   <td class="${difference>=0?'good':'bad'}">
-
-    ${difference>=0?'+':''}${money(difference)}
-
-   </td>
-
-   <td>
-
-    <button
-     class="ghost"
-     onclick="deleteRecord('${x.date}')">
-     ×
-    </button>
-
-   </td>
-
-  </tr>
-
-  `;
+  <td>${x.date}</td>
+  <td>${x.ekwh}</td>
+  <td>${x.gkwh}</td>
+  <td>${money(x.fuse)}</td>
+  <td>${money(x.tracker)}</td>
+  <td class="${d>=0?'good':'bad'}">
+  ${d>=0?'+':''}${money(d)}
+  </td>
+  <td>
+  <button class="ghost"
+  onclick="removeDay('${x.date}')">×</button>
+  </td>
+  </tr>`;
 
  }).join('');
 
+ $('sumFuse').textContent=money(fuse);
+ $('sumTracker').textContent=money(tracker);
 
- $('sumFuse').textContent=
- money(sf);
-
- $('sumTracker').textContent=
- money(st);
-
-
- let saving=
- sf-st;
-
+ const diff=fuse-tracker;
 
  $('saving').textContent=
- (saving>=0?'+':'')+
- money(saving);
-
+ (diff>=0?'+':'')+money(diff);
 
  $('saving').className=
- saving>=0?'good':'bad';
+ diff>=0?'good':'bad';
 
+ $('savingText').textContent=
+ data.length
+ ?(diff>=0?'Tracker 較平':'Fuse 較平')
+ :'';
 
- if(data.length===0){
+ $('days').textContent=data.length;
 
-  $('savingText').textContent='';
-
- }else{
-
-  $('savingText').textContent=
-  saving>=0
-  ?'Tracker 較平'
-  :'Fuse 較平';
-
- }
-
-
- $('days').textContent=
- data.length;
-
-
- localStorage.setItem(
-  KEY,
-  JSON.stringify(data)
- );
+ localStorage.setItem(KEY,JSON.stringify(data));
 
 }
 
 
-window.deleteRecord=
-function(date){
+window.removeDay=function(date){
 
- if(!confirm(
-  '確定刪除 '+date+' 嘅紀錄？'
- )) return;
+ if(confirm('刪除 '+date+'？')){
 
-
- data=
- data.filter(
-  x=>x.date!==date
- );
-
-
- render();
-
-};
-
-
-$('save').onclick=
-async()=>{
-
- try{
-
-  let date=
-  $('date').value;
-
-  let ek=
-  Number($('ekwh').value);
-
-  let gk=
-  Number($('gkwh').value);
-
-
-  if(!date){
-
-   $('saveStatus').textContent=
-   '請選擇日期。';
-
-   return;
-
-  }
-
-
-  if(
-   !Number.isFinite(ek) ||
-   !Number.isFinite(gk) ||
-   ek<0 ||
-   gk<0
-  ){
-
-   $('saveStatus').textContent=
-   '請輸入正確 Electricity / Gas 用量。';
-
-   return;
-
-  }
-
-
-  $('saveStatus').textContent=
-  '正在讀取 '+date+
-  ' Tracker 價格…';
-
-
-  let [trackerE,trackerG]=
-  await rates(date);
-
-
-  /*
-   Fuse:
-   Electricity usage + electricity standing
-   Gas usage + gas standing
-  */
-
-  let fuse=
-
-  (
-   ek*FUSE_E_RATE +
-   FUSE_E_SC +
-
-   gk*FUSE_G_RATE +
-   FUSE_G_SC
-
-  )/100;
-
-
-  /*
-   Tracker:
-   Electricity usage + electricity standing
-   Gas usage + gas standing
-  */
-
-  let tracker=
-
-  (
-   ek*trackerE +
-   TRACKER_E_SC +
-
-   gk*trackerG +
-   TRACKER_G_SC
-
-  )/100;
-
-
-  let rec={
-
-   date:date,
-
-   ekwh:ek,
-   gkwh:gk,
-
-   fuseE:FUSE_E_RATE,
-   fuseESC:FUSE_E_SC,
-
-   fuseG:FUSE_G_RATE,
-   fuseGSC:FUSE_G_SC,
-
-   trackerE:trackerE,
-   trackerESC:TRACKER_E_SC,
-
-   trackerG:trackerG,
-   trackerGSC:TRACKER_G_SC,
-
-   fuse:fuse,
-   tracker:tracker
-
-  };
-
-
-  data=
-  data.filter(
-   x=>x.date!==date
-  );
-
-
-  data.push(rec);
-
+  data=data.filter(x=>x.date!==date);
 
   render();
 
-
-  $('saveStatus').textContent=
-
-  '已儲存 '+date+
-  '｜Tracker 電 '+
-  trackerE.toFixed(2)+
-  'p｜Gas '+
-  trackerG.toFixed(2)+
-  'p';
-
-
-  $('ekwh').value='';
-  $('gkwh').value='';
-
-
- }
-
- catch(e){
-
-  $('saveStatus').textContent=
-  '未能儲存：'+
-  e.message;
-
  }
 
 };
 
 
-function download(
- name,
- text,
- type
-){
+function download(name,text,type){
 
- let a=
- document.createElement('a');
+ const blob=new Blob([text],{type});
 
+ const url=URL.createObjectURL(blob);
 
- let url=
- URL.createObjectURL(
-
-  new Blob(
-   [text],
-   {type:type}
-  )
-
- );
-
+ const a=document.createElement('a');
 
  a.href=url;
-
  a.download=name;
 
  document.body.appendChild(a);
@@ -705,112 +503,57 @@ function download(
 
  a.remove();
 
-
- setTimeout(
-  ()=>URL.revokeObjectURL(url),
-  1000
- );
+ setTimeout(()=>URL.revokeObjectURL(url),500);
 
 }
 
 
-$('backup').onclick=
-()=>{
+$('backup').onclick=()=>{
 
  download(
-
-  'energy-tracker-backup.json',
-
-  JSON.stringify(
-   data,
-   null,
-   2
-  ),
-
-  'application/json'
-
+ 'energy-backup.json',
+ JSON.stringify(data,null,2),
+ 'application/json'
  );
 
 };
 
 
-$('export').onclick=
-()=>{
+$('csv').onclick=()=>{
 
- let header=
+ let csv=
+ 'Date,Electricity kWh,Gas kWh,Tracker Electricity p,Tracker Gas p,Fuse GBP,Tracker GBP,Difference GBP\n';
 
- 'Date,'+
- 'Electricity kWh,'+
- 'Gas kWh,'+
- 'Fuse Electricity Rate p,'+
- 'Fuse Electricity Standing p,'+
- 'Fuse Gas Rate p,'+
- 'Fuse Gas Standing p,'+
- 'Fuse Cost GBP,'+
- 'Tracker Electricity Rate p,'+
- 'Tracker Gas Rate p,'+
- 'Tracker Cost GBP,'+
- 'Difference GBP\n';
+ data.forEach(x=>{
 
-
- let rows=
-
- data.map(x=>
-
+  csv+=
   [
-
    x.date,
-
    x.ekwh,
    x.gkwh,
-
-   x.fuseE,
-   x.fuseESC,
-
-   x.fuseG,
-   x.fuseGSC,
-
-   Number(x.fuse).toFixed(2),
-
    x.trackerE,
    x.trackerG,
+   x.fuse.toFixed(2),
+   x.tracker.toFixed(2),
+   (x.fuse-x.tracker).toFixed(2)
+  ].join(',')+'\n';
 
-   Number(x.tracker).toFixed(2),
-
-   (
-    Number(x.fuse)-
-    Number(x.tracker)
-   ).toFixed(2)
-
-  ].join(',')
-
- ).join('\n');
-
+ });
 
  download(
-
   'energy-history.csv',
-
-  header+rows,
-
+  csv,
   'text/csv'
-
  );
 
 };
 
 
-$('clear').onclick=
-()=>{
+$('clear').onclick=()=>{
 
- if(
-  confirm(
-   '確定清除全部歷史紀錄？'
-  )
- ){
+ if(confirm('確定清除全部紀錄？')){
 
   data=[];
-
   render();
 
  }
@@ -819,10 +562,8 @@ $('clear').onclick=
 
 
 render();
-
-today();
+loadDate();
 
 </script>
-
 </body>
 </html>
