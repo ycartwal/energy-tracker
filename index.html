@@ -865,8 +865,13 @@ function preview(){
 
 /* DATE CHANGE */
 
-$('date').onchange=
-loadDate;
+$('date').addEventListener('input', function(){
+ loadDate();
+});
+
+$('date').addEventListener('change', function(){
+ loadDate();
+});
 
 
 /* USAGE CHANGE */
