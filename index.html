@@ -72,9 +72,30 @@ td:first-child,th:first-child{text-align:left}
 }
 .actions button{flex:1}
 
+.rateEdit{
+ display:grid;
+ grid-template-columns:1fr 1fr auto auto;
+ gap:7px;
+ align-items:end;
+ margin-top:12px
+}
+.rateEdit input{
+ padding:9px;
+ font-size:15px
+}
+.rateEdit button{
+ padding:9px 11px;
+ white-space:nowrap
+}
+.manual{
+ color:#8a5b00;
+ font-weight:650
+}
+
 @media(max-width:650px){
  .grid4{grid-template-columns:1fr 1fr}
  .grid2{grid-template-columns:1fr}
+ .rateEdit{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -113,6 +134,46 @@ Tracker 價格 ·
 
 </div>
 
+
+<div class="rateEdit">
+
+<div>
+<label>⚡ 手動 Electricity p/kWh</label>
+<input
+ id="manualE"
+ type="number"
+ step=".01"
+ inputmode="decimal"
+ placeholder="例如 22.06">
+</div>
+
+<div>
+<label>🔥 手動 Gas p/kWh</label>
+<input
+ id="manualG"
+ type="number"
+ step=".01"
+ inputmode="decimal"
+ placeholder="例如 8.41">
+</div>
+
+<button class="ghost" id="applyRates">
+套用
+</button>
+
+<button class="ghost" id="resetRates">
+Reset
+</button>
+
+</div>
+
+<div
+ id="rateMode"
+ class="small"
+ style="margin-top:7px">
+</div>
+
+
 <div class="fusebar">
 <b>Fuse Fixed</b><br>
 ⚡ 23.24p/kWh + 41.44p/day
@@ -125,6 +186,7 @@ Tracker 價格 ·
 </div>
 
 </section>
+
 
 
 <section class="card">
@@ -140,12 +202,20 @@ Tracker 價格 ·
 
 <div>
 <label>Electricity (kWh)</label>
-<input id="ekwh" type="number" step=".001" inputmode="decimal">
+<input
+ id="ekwh"
+ type="number"
+ step=".001"
+ inputmode="decimal">
 </div>
 
 <div>
 <label>Gas (kWh)</label>
-<input id="gkwh" type="number" step=".001" inputmode="decimal">
+<input
+ id="gkwh"
+ type="number"
+ step=".001"
+ inputmode="decimal">
 </div>
 
 </div>
@@ -167,8 +237,10 @@ Tracker 價格 ·
 
 </div>
 
-<div id="previewDiff"
- style="margin-top:8px;font-weight:700"></div>
+<div
+ id="previewDiff"
+ style="margin-top:8px;font-weight:700">
+</div>
 
 </div>
 
@@ -177,11 +249,14 @@ Tracker 價格 ·
 儲存呢日紀錄
 </button>
 
-<div id="saveStatus"
+<div
+ id="saveStatus"
  class="small"
- style="margin-top:8px"></div>
+ style="margin-top:8px">
+</div>
 
 </section>
+
 
 
 <section class="card">
@@ -214,6 +289,7 @@ Tracker 價格 ·
 </div>
 
 </section>
+
 
 
 <section class="card">
@@ -283,7 +359,105 @@ Keep same key so old records remain.
 
 const KEY='ycartwal-energy-v4';
 
-const $=id=>document.getElementById(id);
+/*
+Manual Tracker prices are stored separately.
+*/
+
+const RATE_KEY=
+'ycartwal-energy-manual-rates-v1';
+
+
+const $=id=>
+document.getElementById(id);
+
+
+/* =========================
+   MANUAL PRICE STORAGE
+========================= */
+
+let manualRates={};
+
+try{
+
+ manualRates=
+ JSON.parse(
+  localStorage.getItem(RATE_KEY)
+  ||'{}'
+ )||{};
+
+}catch(e){
+
+ manualRates={};
+
+}
+
+
+function saveManualRates(){
+
+ localStorage.setItem(
+  RATE_KEY,
+  JSON.stringify(manualRates)
+ );
+
+}
+
+
+function getManualRate(date){
+
+ const r=manualRates[date];
+
+ if(!r)return null;
+
+ const e=Number(r.e);
+ const g=Number(r.g);
+
+ if(
+  Number.isFinite(e) &&
+  Number.isFinite(g)
+ ){
+
+  return{e,g};
+
+ }
+
+ return null;
+
+}
+
+
+function showRateInputs(date){
+
+ const r=getManualRate(date);
+
+ if(r){
+
+  $('manualE').value=
+   r.e.toFixed(2);
+
+  $('manualG').value=
+   r.g.toFixed(2);
+
+  $('rateMode').textContent=
+   '✏️ 呢日使用手動價格';
+
+  $('rateMode').className=
+   'small manual';
+
+ }else{
+
+  $('manualE').value='';
+
+  $('manualG').value='';
+
+  $('rateMode').textContent=
+   'API 自動價格';
+
+  $('rateMode').className=
+   'small';
+
+ }
+
+}
 
 
 /* =========================
@@ -292,7 +466,8 @@ const $=id=>document.getElementById(id);
 
 function ukToday(){
 
- const parts=new Intl.DateTimeFormat(
+ const parts=
+ new Intl.DateTimeFormat(
   'en-CA',
   {
    timeZone:'Europe/London',
@@ -308,18 +483,17 @@ function ukToday(){
   obj[p.type]=p.value;
  });
 
- return `${obj.year}-${obj.month}-${obj.day}`;
+ return(
+  `${obj.year}-${obj.month}-${obj.day}`
+ );
+
 }
 
 
-/*
-Convert API valid_from into
-Europe/London calendar date.
-*/
-
 function londonDate(iso){
 
- const parts=new Intl.DateTimeFormat(
+ const parts=
+ new Intl.DateTimeFormat(
   'en-CA',
   {
    timeZone:'Europe/London',
@@ -327,7 +501,9 @@ function londonDate(iso){
    month:'2-digit',
    day:'2-digit'
   }
- ).formatToParts(new Date(iso));
+ ).formatToParts(
+  new Date(iso)
+ );
 
  const obj={};
 
@@ -335,12 +511,18 @@ function londonDate(iso){
   obj[p.type]=p.value;
  });
 
- return `${obj.year}-${obj.month}-${obj.day}`;
+ return(
+  `${obj.year}-${obj.month}-${obj.day}`
+ );
+
 }
 
 
 $('date').value=ukToday();
-$('priceDate').textContent=ukToday();
+
+$('priceDate').textContent=
+ukToday();
+
 
 
 /* =========================
@@ -351,8 +533,10 @@ let data=[];
 
 try{
 
- data=JSON.parse(
-  localStorage.getItem(KEY)||'[]'
+ data=
+ JSON.parse(
+  localStorage.getItem(KEY)
+  ||'[]'
  );
 
 }catch(e){
@@ -368,6 +552,81 @@ let currentG=null;
 let loadNumber=0;
 
 
+
+/* =========================
+   DISPLAY PRICE
+========================= */
+
+function displayRates(
+ date,
+ e,
+ g,
+ isManual
+){
+
+ currentE=e;
+ currentG=g;
+
+ $('te').textContent=
+  e.toFixed(2)+'p';
+
+ $('tg').textContent=
+  g.toFixed(2)+'p';
+
+
+ const ed=e-FUSE_E;
+ const gd=g-FUSE_G;
+
+
+ $('ediff').textContent=
+  'vs Fuse '
+  +(ed>=0?'+':'')
+  +ed.toFixed(2)
+  +'p/kWh';
+
+
+ $('gdiff').textContent=
+  'vs Fuse '
+  +(gd>=0?'+':'')
+  +gd.toFixed(2)
+  +'p/kWh';
+
+
+ $('ediff').className=
+  ed>0
+  ?'small bad'
+  :'small good';
+
+
+ $('gdiff').className=
+  gd>0
+  ?'small bad'
+  :'small good';
+
+
+ if(isManual){
+
+  $('status').textContent=
+   date+
+   ' · 手動 Tracker 價格';
+
+ }else{
+
+  $('status').textContent=
+   date+
+   ' · Tracker Sep 2025 v1 · East Midlands (B)';
+
+ }
+
+
+ showRateInputs(date);
+
+ preview();
+
+}
+
+
+
 /* =========================
    OCTOPUS API
 ========================= */
@@ -378,23 +637,23 @@ async function rate(
  selectedDate
 ){
 
- /*
- Pull a wider UTC window.
-
- This deliberately avoids assuming
- that UK midnight = UTC midnight.
- */
-
- const base=new Date(
+ const base=
+ new Date(
   selectedDate+'T12:00:00Z'
  );
 
- const from=new Date(
-  base.getTime()-(36*60*60*1000)
+
+ const from=
+ new Date(
+  base.getTime()
+  -(36*60*60*1000)
  ).toISOString();
 
- const to=new Date(
-  base.getTime()+(36*60*60*1000)
+
+ const to=
+ new Date(
+  base.getTime()
+  +(36*60*60*1000)
  ).toISOString();
 
 
@@ -402,7 +661,8 @@ async function rate(
  `https://api.octopus.energy/v1/products/${PRODUCT}/${fuel}-tariffs/${tariff}/standard-unit-rates/?period_from=${encodeURIComponent(from)}&period_to=${encodeURIComponent(to)}&page_size=100`;
 
 
- const response=await fetch(
+ const response=
+ await fetch(
   url,
   {cache:'no-store'}
  );
@@ -411,13 +671,15 @@ async function rate(
  if(!response.ok){
 
   throw new Error(
-   'Octopus API '+response.status
+   'Octopus API '
+   +response.status
   );
 
  }
 
 
- const json=await response.json();
+ const json=
+ await response.json();
 
 
  if(
@@ -432,17 +694,8 @@ async function rate(
  }
 
 
- /*
- Critical v7 fix:
-
- DO NOT use results[0].
-
- Convert every valid_from timestamp
- into Europe/London local date,
- then find the requested date.
- */
-
- const matches=json.results.filter(
+ const matches=
+ json.results.filter(
   item=>
    londonDate(item.valid_from)
    ===selectedDate
@@ -462,20 +715,13 @@ async function rate(
   );
 
   throw new Error(
-   '找不到 '+selectedDate+' 的價格'
+   '找不到 '
+   +selectedDate+
+   ' 的價格'
   );
 
  }
 
-
- /*
- Tracker should normally have one
- daily rate.
-
- If multiple matching records exist,
- choose the earliest valid_from for
- that UK calendar day.
- */
 
  matches.sort(
   (a,b)=>
@@ -484,10 +730,12 @@ async function rate(
  );
 
 
- const chosen=matches[0];
+ const chosen=
+ matches[0];
 
 
- const value=Number(
+ const value=
+ Number(
   chosen.value_inc_vat
  );
 
@@ -502,6 +750,7 @@ async function rate(
 
 
  return value;
+
 }
 
 
@@ -526,8 +775,9 @@ async function getRates(date){
 }
 
 
+
 /* =========================
-   LOAD SELECTED DATE
+   LOAD DATE
 ========================= */
 
 async function loadDate(){
@@ -539,17 +789,47 @@ async function loadDate(){
  if(!selectedDate)return;
 
 
- const thisLoad=++loadNumber;
+ const thisLoad=
+ ++loadNumber;
 
 
  $('priceDate').textContent=
  selectedDate;
 
 
+ showRateInputs(
+  selectedDate
+ );
+
+
+ /*
+ Manual rate always wins.
+ */
+
+ const manual=
+ getManualRate(
+  selectedDate
+ );
+
+
+ if(manual){
+
+  displayRates(
+   selectedDate,
+   manual.e,
+   manual.g,
+   true
+  );
+
+  return;
+
+ }
+
+
  $('status').textContent=
- '正在讀取 '
- +selectedDate+
- ' Tracker 價格…';
+  '正在讀取 '
+  +selectedDate+
+  ' Tracker 價格…';
 
 
  $('te').textContent='…';
@@ -557,7 +837,6 @@ async function loadDate(){
 
  $('ediff').textContent='';
  $('gdiff').textContent='';
-
 
  currentE=null;
  currentG=null;
@@ -571,72 +850,27 @@ async function loadDate(){
   );
 
 
-  /*
-  If user changed date while API
-  was loading, ignore old response.
-  */
-
-  if(thisLoad!==loadNumber){
+  if(
+   thisLoad!==loadNumber
+  ){
    return;
   }
 
 
-  currentE=rates[0];
-  currentG=rates[1];
-
-
-  $('te').textContent=
-   currentE.toFixed(2)+'p';
-
-
-  $('tg').textContent=
-   currentG.toFixed(2)+'p';
-
-
-  const ed=
-   currentE-FUSE_E;
-
-  const gd=
-   currentG-FUSE_G;
-
-
-  $('ediff').textContent=
-   'vs Fuse '
-   +(ed>=0?'+':'')
-   +ed.toFixed(2)
-   +'p/kWh';
-
-
-  $('gdiff').textContent=
-   'vs Fuse '
-   +(gd>=0?'+':'')
-   +gd.toFixed(2)
-   +'p/kWh';
-
-
-  $('ediff').className=
-   ed>0
-   ?'small bad'
-   :'small good';
-
-
-  $('gdiff').className=
-   gd>0
-   ?'small bad'
-   :'small good';
-
-
-  $('status').textContent=
-   selectedDate+
-   ' · Tracker Sep 2025 v1 · East Midlands (B)';
-
-
-  preview();
+  displayRates(
+   selectedDate,
+   rates[0],
+   rates[1],
+   false
+  );
 
 
  }catch(e){
 
-  if(thisLoad!==loadNumber){
+
+  if(
+   thisLoad!==loadNumber
+  ){
    return;
   }
 
@@ -648,23 +882,28 @@ async function loadDate(){
   $('te').textContent='—';
   $('tg').textContent='—';
 
-
   $('ediff').textContent='';
   $('gdiff').textContent='';
 
 
   $('status').textContent=
    '讀取唔到價格：'
-   +e.message;
+   +e.message+
+   '（可以手動輸入價格）';
 
 
-  $('previewFuse').textContent='£—';
-  $('previewTracker').textContent='£—';
+  $('previewFuse').textContent=
+   '£—';
+
+  $('previewTracker').textContent=
+   '£—';
+
   $('previewDiff').textContent='';
 
  }
 
 }
+
 
 
 /* =========================
@@ -704,6 +943,7 @@ function calc(
 }
 
 
+
 /* =========================
    PREVIEW
 ========================= */
@@ -719,18 +959,19 @@ function preview(){
 
 
  const ek=
-  Number(
-   $('ekwh').value
-  )||0;
+ Number(
+  $('ekwh').value
+ )||0;
 
 
  const gk=
-  Number(
-   $('gkwh').value
-  )||0;
+ Number(
+  $('gkwh').value
+ )||0;
 
 
- const c=calc(
+ const c=
+ calc(
   ek,
   gk,
   currentE,
@@ -747,7 +988,7 @@ function preview(){
 
 
  const diff=
-  c.fuse-c.tracker;
+ c.fuse-c.tracker;
 
 
  if(diff>0){
@@ -756,18 +997,22 @@ function preview(){
    'Tracker 平 £'
    +diff.toFixed(2);
 
-  $('previewDiff').className='good';
+  $('previewDiff').className=
+   'good';
 
  }
+
  else if(diff<0){
 
   $('previewDiff').textContent=
    'Fuse 平 £'
    +Math.abs(diff).toFixed(2);
 
-  $('previewDiff').className='bad';
+  $('previewDiff').className=
+   'bad';
 
  }
+
  else{
 
   $('previewDiff').textContent=
@@ -780,22 +1025,23 @@ function preview(){
 }
 
 
-/* =========================
-   EVENTS
-========================= */
 
-/*
-Use BOTH input and change
-for iPhone/Safari.
-*/
+/* =========================
+   DATE EVENTS
+========================= */
 
 let dateTimer=null;
 
+
 function dateChanged(){
 
- clearTimeout(dateTimer);
+ clearTimeout(
+  dateTimer
+ );
 
- dateTimer=setTimeout(
+
+ dateTimer=
+ setTimeout(
   loadDate,
   120
  );
@@ -808,6 +1054,7 @@ $('date').addEventListener(
  dateChanged
 );
 
+
 $('date').addEventListener(
  'change',
  dateChanged
@@ -819,14 +1066,117 @@ $('ekwh').addEventListener(
  preview
 );
 
+
 $('gkwh').addEventListener(
  'input',
  preview
 );
 
 
+
 /* =========================
-   SAVE
+   MANUAL TRACKER PRICE
+========================= */
+
+$('applyRates').onclick=
+()=>{
+
+ const date=
+ $('date').value;
+
+
+ const e=
+ Number(
+  $('manualE').value
+ );
+
+
+ const g=
+ Number(
+  $('manualG').value
+ );
+
+
+ if(
+  !date ||
+  !Number.isFinite(e) ||
+  !Number.isFinite(g) ||
+  e<0 ||
+  g<0
+ ){
+
+  $('status').textContent=
+   '請輸入正確 Electricity 同 Gas unit rate';
+
+  return;
+
+ }
+
+
+ manualRates[date]={
+  e,
+  g
+ };
+
+
+ saveManualRates();
+
+
+ displayRates(
+  date,
+  e,
+  g,
+  true
+ );
+
+
+ $('status').textContent=
+  '✓ '
+  +date+
+  ' 手動價格已儲存 · ⚡'
+  +e.toFixed(2)
+  +'p · 🔥'
+  +g.toFixed(2)
+  +'p';
+
+};
+
+
+
+/* =========================
+   RESET MANUAL PRICE
+========================= */
+
+$('resetRates').onclick=
+()=>{
+
+ const date=
+ $('date').value;
+
+
+ if(
+  manualRates[date]
+ ){
+
+  delete manualRates[date];
+
+  saveManualRates();
+
+ }
+
+
+ $('manualE').value='';
+ $('manualG').value='';
+
+
+ loadDate();
+
+};
+
+
+
+/* =========================
+   SAVE DAILY RECORD
 ========================= */
 
 $('save').onclick=
@@ -835,19 +1185,19 @@ async()=>{
  try{
 
   const date=
-   $('date').value;
+  $('date').value;
 
 
   const ek=
-   Number(
-    $('ekwh').value
-   );
+  Number(
+   $('ekwh').value
+  );
 
 
   const gk=
-   Number(
-    $('gkwh').value
-   );
+  Number(
+   $('gkwh').value
+  );
 
 
   if(
@@ -872,17 +1222,40 @@ async()=>{
 
 
   /*
-  Always fetch again when saving.
+  Manual price wins.
+  Otherwise use API.
   */
 
-  const [
-   trackerE,
-   trackerG
-  ]=
-  await getRates(date);
+  const manual=
+  getManualRate(
+   date
+  );
 
 
-  const c=calc(
+  let trackerE;
+  let trackerG;
+
+
+  if(manual){
+
+   trackerE=manual.e;
+   trackerG=manual.g;
+
+  }else{
+
+   [
+    trackerE,
+    trackerG
+   ]=
+   await getRates(
+    date
+   );
+
+  }
+
+
+  const c=
+  calc(
    ek,
    gk,
    trackerE,
@@ -909,12 +1282,15 @@ async()=>{
   };
 
 
-  data=data.filter(
+  data=
+  data.filter(
    x=>x.date!==date
   );
 
 
-  data.push(rec);
+  data.push(
+   rec
+  );
 
 
   render();
@@ -941,14 +1317,17 @@ async()=>{
 };
 
 
+
 /* =========================
    HISTORY
 ========================= */
 
 function money(n){
 
- return '£'
- +Number(n).toFixed(2);
+ return(
+  '£'
+  +Number(n).toFixed(2)
+ );
 
 }
 
@@ -970,16 +1349,25 @@ function render(){
  $('rows').innerHTML=
  data.map(x=>{
 
-  fuse+=Number(x.fuse);
-  tracker+=Number(x.tracker);
+
+  fuse+=
+  Number(
+   x.fuse
+  );
+
+
+  tracker+=
+  Number(
+   x.tracker
+  );
 
 
   const d=
-   Number(x.fuse)
-   -Number(x.tracker);
+  Number(x.fuse)
+  -Number(x.tracker);
 
 
-  return `
+  return`
   <tr>
 
    <td>${x.date}</td>
@@ -1019,7 +1407,7 @@ function render(){
 
 
  const diff=
-  fuse-tracker;
+ fuse-tracker;
 
 
  $('saving').textContent=
@@ -1048,7 +1436,7 @@ function render(){
 
 
  $('days').textContent=
-  data.length;
+ data.length;
 
 
  localStorage.setItem(
@@ -1057,6 +1445,7 @@ function render(){
  );
 
 }
+
 
 
 /* =========================
@@ -1068,19 +1457,24 @@ function(date){
 
  if(
   confirm(
-   '刪除 '+date+'？'
+   '刪除 '
+   +date+
+   '？'
   )
  ){
 
-  data=data.filter(
+  data=
+  data.filter(
    x=>x.date!==date
   );
+
 
   render();
 
  }
 
 };
+
 
 
 /* =========================
@@ -1094,42 +1488,55 @@ function download(
 ){
 
  const blob=
-  new Blob(
-   [text],
-   {type}
-  );
+ new Blob(
+  [text],
+  {type}
+ );
 
 
  const url=
-  URL.createObjectURL(
-   blob
-  );
+ URL.createObjectURL(
+  blob
+ );
 
 
  const a=
-  document.createElement('a');
+ document.createElement(
+  'a'
+ );
 
 
  a.href=url;
  a.download=name;
 
 
- document.body.appendChild(a);
+ document.body.appendChild(
+  a
+ );
+
 
  a.click();
+
 
  a.remove();
 
 
  setTimeout(
-  ()=>URL.revokeObjectURL(url),
+  ()=>{
+   URL.revokeObjectURL(
+    url
+   );
+  },
   500
  );
 
 }
 
 
-/* BACKUP */
+
+/* =========================
+   BACKUP
+========================= */
 
 $('backup').onclick=
 ()=>{
@@ -1147,7 +1554,10 @@ $('backup').onclick=
 };
 
 
-/* CSV */
+
+/* =========================
+   CSV
+========================= */
 
 $('csv').onclick=
 ()=>{
@@ -1164,8 +1574,12 @@ $('csv').onclick=
    x.gkwh,
    x.trackerE,
    x.trackerG,
-   Number(x.fuse).toFixed(2),
-   Number(x.tracker).toFixed(2),
+   Number(
+    x.fuse
+   ).toFixed(2),
+   Number(
+    x.tracker
+   ).toFixed(2),
    (
     Number(x.fuse)
     -Number(x.tracker)
@@ -1185,7 +1599,10 @@ $('csv').onclick=
 };
 
 
-/* CLEAR */
+
+/* =========================
+   CLEAR
+========================= */
 
 $('clear').onclick=
 ()=>{
@@ -1197,6 +1614,7 @@ $('clear').onclick=
  ){
 
   data=[];
+
   render();
 
  }
@@ -1204,11 +1622,13 @@ $('clear').onclick=
 };
 
 
+
 /* =========================
    START
 ========================= */
 
 render();
+
 loadDate();
 
 </script>
